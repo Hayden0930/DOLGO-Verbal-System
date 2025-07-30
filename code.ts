@@ -14,6 +14,17 @@ interface UXPattern {
 
 // 한국어 UX Writing 친근한 톤 변환 패턴
 const uxPatterns: UXPattern[] = [
+  // 돌고만의 기본 용어 시스템 반영
+  { pattern: "나눔", replacement: "기부", description: "기부를 일관되게 표현하기 ", category: "command" },
+  { pattern: "후원", replacement: "기부", description: "기부를 일관되게 표현하기 ", category: "command" },
+  { pattern: "함께하기", replacement: "기부", description: "기부를 일관되게 표현하기 ", category: "command" },
+  { pattern: "나눔", replacement: "배분", description: "기부금 전달 과정 일관되게 표현하기 ", category: "command" },
+  { pattern: "정기모금", replacement: "정기사연", description: "모금과 사연 개념 구분", category: "command" },
+  { pattern: "일시모금", replacement: "일시사연", description: "모금과 사연 개념 구분", category: "command" },
+  { pattern: "메시지", replacement: "댓글", description: "메시지와 댓글 개념 구분", category: "command" },
+  { pattern: "설립", replacement: "개설", description: "설립과 개설 개념 구분", category: "command" },
+  { pattern: "재단", replacement: "기부재단", description: "기부재단은 줄여쓰지 않기", category: "command" },
+    
   // 명령형 → 친근한 제안형
   { pattern: "확인해보세요", replacement: "확인하기", description: "친근한 어조", category: "command" },
   { pattern: "이용해보세요", replacement: "이용하기", description: "간결한 표현", category: "command" },
