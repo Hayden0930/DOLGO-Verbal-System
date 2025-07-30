@@ -2,156 +2,668 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    /* Shadcn 스타일 기반 CSS */
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
       margin: 0;
-      padding: 20px;
-      background: #f5f5f5;
+      padding: 0;
+      background: #ffffff;
+      color: #0f172a;
+      line-height: 1.5;
     }
     
     .container {
-      background: white;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 16px;
+      max-width: 100%;
     }
     
-    h2 {
-      color: #333;
-      margin: 0 0 16px 0;
+    .header {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .header h1 {
       font-size: 18px;
       font-weight: 600;
+      margin: 0 0 4px 0;
+      color: #0f172a;
     }
     
-    .description {
-      color: #666;
+    .header p {
       font-size: 14px;
-      line-height: 1.5;
-      margin-bottom: 20px;
+      color: #64748b;
+      margin: 0;
     }
     
     .button-group {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
+      margin-bottom: 20px;
     }
     
-    button {
-      background: #18a0fb;
-      color: white;
-      border: none;
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 6px;
-      padding: 12px 16px;
       font-size: 14px;
       font-weight: 500;
+      padding: 8px 16px;
+      border: 1px solid transparent;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: all 0.2s;
+      text-decoration: none;
+      min-height: 36px;
     }
     
-    button:hover {
-      background: #0d8ce0;
+    .btn-primary {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
     }
     
-    button.secondary {
-      background: #f0f0f0;
-      color: #333;
+    .btn-primary:hover {
+      background: #1e293b;
+      border-color: #1e293b;
     }
     
-    button.secondary:hover {
-      background: #e0e0e0;
+    .btn-secondary {
+      background: #f8fafc;
+      color: #0f172a;
+      border-color: #e2e8f0;
     }
     
-    .examples {
-      margin-top: 20px;
+    .btn-secondary:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+    
+    .btn-outline {
+      background: transparent;
+      color: #0f172a;
+      border-color: #e2e8f0;
+    }
+    
+    .btn-outline:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+    
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
       padding: 16px;
-      background: #f8f9fa;
-      border-radius: 6px;
-      border-left: 4px solid #18a0fb;
+      margin-bottom: 16px;
     }
     
-    .examples h3 {
-      margin: 0 0 12px 0;
+    .card-header {
+      margin-bottom: 12px;
+    }
+    
+    .card-title {
       font-size: 14px;
-      color: #333;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+      color: #0f172a;
     }
     
-    .example-item {
+    .card-description {
+      font-size: 12px;
+      color: #64748b;
+      margin: 0;
+    }
+    
+    .analysis-section {
+      margin-bottom: 16px;
+    }
+    
+    .analysis-item {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 8px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .analysis-item:last-child {
+      border-bottom: none;
+    }
+    
+    .analysis-label {
       font-size: 13px;
+      color: #64748b;
     }
     
-    .example-item:last-child {
-      margin-bottom: 0;
-    }
-    
-    .before {
-      color: #666;
-    }
-    
-    .arrow {
-      color: #999;
-      margin: 0 8px;
-    }
-    
-    .after {
-      color: #18a0fb;
+    .analysis-value {
+      font-size: 13px;
       font-weight: 500;
+      color: #0f172a;
+    }
+    
+    .confidence-bar {
+      width: 60px;
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .confidence-fill {
+      height: 100%;
+      background: #10b981;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    
+    .suggestions-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .suggestion-item {
+      font-size: 12px;
+      color: #64748b;
+      padding: 4px 0;
+      border-left: 2px solid #e2e8f0;
+      padding-left: 8px;
+      margin-bottom: 4px;
+    }
+    
+    .keyword-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    
+    .keyword-tag {
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .preview-section {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .preview-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: #0f172a;
+    }
+    
+    .preview-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .preview-item:last-child {
+      border-bottom: none;
+    }
+    
+    .preview-before {
+      font-size: 12px;
+      color: #64748b;
+      flex: 1;
+    }
+    
+    .preview-arrow {
+      color: #94a3b8;
+      margin: 0 8px;
+      font-size: 12px;
+    }
+    
+    .preview-after {
+      font-size: 12px;
+      color: #059669;
+      font-weight: 500;
+      flex: 1;
+      text-align: right;
+    }
+    
+    .pattern-category {
+      margin-bottom: 12px;
+    }
+    
+    .pattern-category-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      margin: 0 0 6px 0;
+      padding: 4px 8px;
+      background: #f3f4f6;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    
+    .pattern-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 11px;
+    }
+    
+    .pattern-description {
+      color: #6b7280;
+      font-size: 10px;
+      font-style: italic;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #64748b;
+    }
+    
+    .loading.show {
+      display: block;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 50%;
+      border-top-color: #0f172a;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .tone-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    
+    .tone-friendly {
+      background: #dcfce7;
+      color: #166534;
+    }
+    
+    .tone-professional {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .tone-enthusiastic {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .tone-playful {
+      background: #f3e8ff;
+      color: #7c3aed;
+    }
+    
+    .tone-neutral {
+      background: #f1f5f9;
+      color: #475569;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>🎯 DOLGO Verbal System</h2>
-    <div class="description">
-      선택한 텍스트를 한국어 UX Writing 친근한 톤으로 자동 변환해드립니다.
+    <div class="header">
+      <h1>🎯 DOLGO Verbal System</h1>
+      <p>한국어 UX Writing 친근한 톤 변환</p>
     </div>
     
     <div class="button-group">
-      <button id="convert-selected">선택한 텍스트 변환</button>
-      <button id="convert-all">모든 텍스트 변환</button>
-      <button id="cancel" class="secondary">취소</button>
+      <button id="analyze-btn" class="btn btn-primary">텍스트 분석하기</button>
+      <button id="apply-tone-btn" class="btn btn-secondary hidden">톤 적용하기</button>
+      <button id="convert-all-btn" class="btn btn-outline">모든 텍스트 변환</button>
+      <button id="cancel-btn" class="btn btn-outline">취소</button>
     </div>
     
-    <div class="examples">
-      <h3>변환 예시</h3>
-      <div class="example-item">
-        <span class="before">확인해보세요</span>
-        <span class="arrow">→</span>
-        <span class="after">확인하기</span>
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      텍스트를 분석하고 있습니다...
+    </div>
+    
+    <div id="analysis-results" class="hidden">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">📊 톤 프로파일 분석</h3>
+          <p class="card-description">선택한 텍스트의 UX Writing 톤을 분석했습니다</p>
+        </div>
+        
+        <div id="tone-profile" class="analysis-section">
+          <!-- 톤 프로파일이 여기에 동적으로 추가됩니다 -->
+        </div>
       </div>
-      <div class="example-item">
-        <span class="before">클릭하세요</span>
-        <span class="arrow">→</span>
-        <span class="after">클릭하기</span>
+      
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">🔍 변환 미리보기</h3>
+          <p class="card-description">적용 가능한 변환 항목들을 확인하세요</p>
+        </div>
+        
+        <div id="preview-section" class="preview-section">
+          <div class="preview-title">변환 예시</div>
+          <div id="preview-items">
+            <!-- 미리보기 항목들이 여기에 동적으로 추가됩니다 -->
+          </div>
+        </div>
       </div>
-      <div class="example-item">
-        <span class="before">입력하세요</span>
-        <span class="arrow">→</span>
-        <span class="after">입력하기</span>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">💡 UX Writing 패턴</h3>
+        <p class="card-description">카테고리별 변환 패턴</p>
       </div>
-      <div class="example-item">
-        <span class="before">문의하세요</span>
-        <span class="arrow">→</span>
-        <span class="after">문의하기</span>
+      
+      <div class="pattern-category">
+        <div class="pattern-category-title">명령형 → 제안형</div>
+        <div class="pattern-item">
+          <span class="preview-before">확인해보세요</span>
+          <span class="preview-arrow">→</span>
+          <span class="preview-after">확인하기</span>
+          <span class="pattern-description">친근한 어조</span>
+        </div>
+        <div class="pattern-item">
+          <span class="preview-before">이용해보세요</span>
+          <span class="preview-arrow">→</span>
+          <span class="preview-after">이용하기</span>
+          <span class="pattern-description">간결한 표현</span>
+        </div>
+        <div class="pattern-item">
+          <span class="preview-before">참여해보세요</span>
+          <span class="preview-arrow">→</span>
+          <span class="preview-after">참여하기</span>
+          <span class="pattern-description">직접적 유도</span>
+        </div>
+      </div>
+      
+      <div class="pattern-category">
+        <div class="pattern-category-title">격식체 → 친근체</div>
+        <div class="pattern-item">
+          <span class="preview-before">됩니다</span>
+          <span class="preview-arrow">→</span>
+          <span class="preview-after">돼요</span>
+          <span class="pattern-description">친근한 확인</span>
+        </div>
+        <div class="pattern-item">
+          <span class="preview-before">입니다</span>
+          <span class="preview-arrow">→</span>
+          <span class="preview-after">이에요</span>
+          <span class="pattern-description">부드러운 설명</span>
+        </div>
+        <div class="pattern-item">
+          <span class="preview-before">있습니다</span>
+          <span class="preview-arrow">→</span>
+          <span class="preview-after">있어요</span>
+          <span class="pattern-description">친근한 안내</span>
+        </div>
+      </div>
+      
+      <div class="pattern-category">
+        <div class="pattern-category-title">격식적 표현 → 친근한 표현</div>
+        <div class="pattern-item">
+          <span class="preview-before">하시면</span>
+          <span class="preview-arrow">→</span>
+          <span class="preview-after">하면</span>
+          <span class="pattern-description">간결한 조건</span>
+        </div>
+        <div class="pattern-item">
+          <span class="preview-before">하십시오</span>
+          <span class="preview-arrow">→</span>
+          <span class="preview-after">해주세요</span>
+          <span class="pattern-description">정중한 요청</span>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    document.getElementById('convert-selected').onclick = () => {
-      parent.postMessage({ pluginMessage: { type: 'convert-selected' } }, '*');
-    };
-
-    document.getElementById('convert-all').onclick = () => {
+    // UI 상태 관리
+    let analysisResults = null;
+    
+    // DOM 요소들
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const applyToneBtn = document.getElementById('apply-tone-btn');
+    const convertAllBtn = document.getElementById('convert-all-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const loading = document.getElementById('loading');
+    const analysisResultsDiv = document.getElementById('analysis-results');
+    const toneProfileDiv = document.getElementById('tone-profile');
+    const previewItemsDiv = document.getElementById('preview-items');
+    
+    // 이벤트 리스너
+    analyzeBtn.addEventListener('click', () => {
+      showLoading();
+      parent.postMessage({ pluginMessage: { type: 'analyze-selected' } }, '*');
+    });
+    
+    applyToneBtn.addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'apply-tone' } }, '*');
+    });
+    
+    convertAllBtn.addEventListener('click', () => {
       parent.postMessage({ pluginMessage: { type: 'convert-all' } }, '*');
-    };
-
-    document.getElementById('cancel').onclick = () => {
+    });
+    
+    cancelBtn.addEventListener('click', () => {
       parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
-    };
+    });
+    
+    // 로딩 표시
+    function showLoading() {
+      loading.classList.add('show');
+      analysisResultsDiv.classList.add('hidden');
+      applyToneBtn.classList.add('hidden');
+    }
+    
+    // 로딩 숨기기
+    function hideLoading() {
+      loading.classList.remove('show');
+    }
+    
+    // 톤 배지 생성
+    function createToneBadge(tone) {
+      const badge = document.createElement('span');
+      badge.className = `tone-badge tone-${tone}`;
+      badge.textContent = tone;
+      return badge;
+    }
+    
+    // 신뢰도 바 생성
+    function createConfidenceBar(confidence) {
+      const bar = document.createElement('div');
+      bar.className = 'confidence-bar';
+      
+      const fill = document.createElement('div');
+      fill.className = 'confidence-fill';
+      fill.style.width = `${confidence * 100}%`;
+      
+      bar.appendChild(fill);
+      return bar;
+    }
+    
+    // 톤 프로파일 렌더링
+    function renderToneProfile(profiles) {
+      toneProfileDiv.innerHTML = '';
+      
+      if (profiles.length === 0) {
+        toneProfileDiv.innerHTML = '<p style="color: #64748b; font-size: 13px;">분석할 텍스트가 없습니다.</p>';
+        return;
+      }
+      
+      profiles.forEach((profile, index) => {
+        const profileDiv = document.createElement('div');
+        profileDiv.className = 'analysis-section';
+        
+        if (profiles.length > 1) {
+          const title = document.createElement('h4');
+          title.style.fontSize = '13px';
+          title.style.margin = '0 0 8px 0';
+          title.style.color = '#0f172a';
+          title.textContent = `텍스트 ${index + 1}`;
+          profileDiv.appendChild(title);
+        }
+        
+        // 문장 스타일
+        const sentenceStyleDiv = document.createElement('div');
+        sentenceStyleDiv.className = 'analysis-item';
+        sentenceStyleDiv.innerHTML = `
+          <span class="analysis-label">문장 스타일</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="analysis-value">${profile.sentenceStyle.type}</span>
+            ${createConfidenceBar(profile.sentenceStyle.confidence).outerHTML}
+          </div>
+        `;
+        profileDiv.appendChild(sentenceStyleDiv);
+        
+        // 감정 톤
+        const emotionDiv = document.createElement('div');
+        emotionDiv.className = 'analysis-item';
+        emotionDiv.innerHTML = `
+          <span class="analysis-label">감정 톤</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            ${createToneBadge(profile.emotion.tone).outerHTML}
+            ${createConfidenceBar(profile.emotion.confidence).outerHTML}
+          </div>
+        `;
+        profileDiv.appendChild(emotionDiv);
+        
+        // 전체 톤
+        const overallToneDiv = document.createElement('div');
+        overallToneDiv.className = 'analysis-item';
+        overallToneDiv.innerHTML = `
+          <span class="analysis-label">전체 톤</span>
+          <span class="analysis-value">${profile.overallTone}</span>
+        `;
+        profileDiv.appendChild(overallToneDiv);
+        
+        // 적용 가능한 패턴
+        if (profile.patterns && profile.patterns.length > 0) {
+          const patternsDiv = document.createElement('div');
+          patternsDiv.className = 'analysis-item';
+          patternsDiv.innerHTML = `
+            <span class="analysis-label">적용 가능한 패턴</span>
+            <span class="analysis-value">${profile.patterns.length}개</span>
+          `;
+          profileDiv.appendChild(patternsDiv);
+        }
+        
+        // 키워드
+        if (profile.keywords.keywords.length > 0) {
+          const keywordsDiv = document.createElement('div');
+          keywordsDiv.className = 'analysis-item';
+          keywordsDiv.innerHTML = `
+            <span class="analysis-label">주요 키워드</span>
+            <div class="keyword-tags">
+              ${profile.keywords.keywords.slice(0, 5).map(keyword => 
+                `<span class="keyword-tag">${keyword}</span>`
+              ).join('')}
+            </div>
+          `;
+          profileDiv.appendChild(keywordsDiv);
+        }
+        
+        // 제안사항
+        if (profile.suggestions.length > 0) {
+          const suggestionsDiv = document.createElement('div');
+          suggestionsDiv.className = 'analysis-item';
+          suggestionsDiv.innerHTML = `
+            <span class="analysis-label">제안사항</span>
+            <ul class="suggestions-list">
+              ${profile.suggestions.map(suggestion => 
+                `<li class="suggestion-item">${suggestion}</li>`
+              ).join('')}
+            </ul>
+          `;
+          profileDiv.appendChild(suggestionsDiv);
+        }
+        
+        toneProfileDiv.appendChild(profileDiv);
+      });
+    }
+    
+    // 미리보기 렌더링
+    function renderPreview(profiles) {
+      previewItemsDiv.innerHTML = '';
+      
+      if (profiles.length === 0) {
+        previewItemsDiv.innerHTML = '<p style="color: #64748b; font-size: 12px;">변환할 항목이 없습니다.</p>';
+        return;
+      }
+      
+      // 기본 변환 예시들
+      const defaultConversions = [
+        { before: '확인해보세요', after: '확인하기', description: '친근한 어조' },
+        { before: '이용해보세요', after: '이용하기', description: '간결한 표현' },
+        { before: '참여해보세요', after: '참여하기', description: '직접적 유도' },
+        { before: '됩니다', after: '돼요', description: '친근한 확인' },
+        { before: '입니다', after: '이에요', description: '부드러운 설명' },
+        { before: '있습니다', after: '있어요', description: '친근한 안내' }
+      ];
+      
+      defaultConversions.forEach(conversion => {
+        const item = document.createElement('div');
+        item.className = 'preview-item';
+        item.innerHTML = `
+          <span class="preview-before">${conversion.before}</span>
+          <span class="preview-arrow">→</span>
+          <span class="preview-after">${conversion.after}</span>
+          <span class="pattern-description">${conversion.description}</span>
+        `;
+        previewItemsDiv.appendChild(item);
+      });
+    }
+    
+    // 분석 결과 처리
+    function handleAnalysisResult(profiles) {
+      analysisResults = profiles;
+      renderToneProfile(profiles);
+      renderPreview(profiles);
+      
+      hideLoading();
+      analysisResultsDiv.classList.remove('hidden');
+      applyToneBtn.classList.remove('hidden');
+    }
+    
+    // 메시지 수신
+    window.addEventListener('message', (event) => {
+      const message = event.data.pluginMessage;
+      
+      if (message.type === 'analysis-result') {
+        handleAnalysisResult(message.profiles);
+      }
+    });
   </script>
 </body>
 </html>
