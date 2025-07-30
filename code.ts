@@ -399,8 +399,55 @@ function convertSelectedTextNodes() {
   }
 }
 
+// 선택한 Frame들의 텍스트 노드를 친근한 톤으로 변환
+async function convertSelectedFramesTextNodes(selectedFrameIds: string[]) {
+  if (selectedFrameIds.length === 0) {
+    figma.notify('선택된 Frame이 없습니다.');
+    return;
+  }
+  
+  let convertedCount = 0;
+  
+  for (const frameId of selectedFrameIds) {
+    const frameNode = figma.currentPage.findOne(node => node.id === frameId);
+    
+    if (!frameNode) {
+      continue;
+    }
+    
+    const textNodes = findAllTextNodes(frameNode);
+    
+    for (const textNode of textNodes) {
+      if (textNode.hasMissingFont) {
+        continue;
+      }
+      
+      // 폰트 로드
+      await loadFontsForTextNode(textNode);
+      
+      const originalText = textNode.characters;
+      const convertedText = convertToFriendlyTone(originalText);
+      
+      if (originalText !== convertedText) {
+        try {
+          textNode.characters = convertedText;
+          convertedCount++;
+        } catch (error) {
+          console.error('텍스트 변경 실패:', error);
+        }
+      }
+    }
+  }
+  
+  if (convertedCount > 0) {
+    figma.notify(`${convertedCount}개의 텍스트가 친근한 톤으로 변경되었습니다!`);
+  } else {
+    figma.notify('변경할 텍스트가 없습니다.');
+  }
+}
+
 // 모든 텍스트 노드를 친근한 톤으로 변환
-function convertAllTextNodes() {
+async function convertAllTextNodes() {
   const textNodes = figma.currentPage.findAll(node => node.type === 'TEXT') as TextNode[];
   
   if (textNodes.length === 0) {
@@ -415,12 +462,19 @@ function convertAllTextNodes() {
       continue;
     }
     
+    // 폰트 로드
+    await loadFontsForTextNode(textNode);
+    
     const originalText = textNode.characters;
     const convertedText = convertToFriendlyTone(originalText);
     
     if (originalText !== convertedText) {
-      textNode.characters = convertedText;
-      convertedCount++;
+      try {
+        textNode.characters = convertedText;
+        convertedCount++;
+      } catch (error) {
+        console.error('텍스트 변경 실패:', error);
+      }
     }
   }
   
@@ -432,16 +486,25 @@ function convertAllTextNodes() {
 }
 
 // UI에서 메시지 수신
-figma.ui.onmessage = (msg: { type: string; data?: any }) => {
+figma.ui.onmessage = async (msg: { type: string; data?: any }) => {
   if (msg.type === 'analyze-selected') {
     const profiles = analyzeSelectedTextNodes();
     figma.ui.postMessage({ type: 'analysis-result', profiles });
+  } else if (msg.type === 'generate-suggestions') {
+    const suggestions = generateConversionSuggestions();
+    figma.ui.postMessage({ type: 'suggestions-result', suggestions });
+  } else if (msg.type === 'get-frames') {
+    const frames = getAllFrames();
+    figma.ui.postMessage({ type: 'frames-result', frames });
+  } else if (msg.type === 'apply-selected-suggestions') {
+    await applySelectedSuggestions(msg.data.selectedNodeIds);
+    figma.notify('선택된 텍스트가 변환되었습니다!');
   } else if (msg.type === 'convert-selected') {
-    convertSelectedTextNodes();
+    await convertSelectedTextNodes();
   } else if (msg.type === 'convert-all') {
-    convertAllTextNodes();
+    await convertSelectedFramesTextNodes(msg.data?.selectedFrameIds || []);
   } else if (msg.type === 'apply-tone') {
-    convertSelectedTextNodes();
+    await convertSelectedTextNodes();
   } else if (msg.type === 'cancel') {
     figma.closePlugin();
   }

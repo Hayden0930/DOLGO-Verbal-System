@@ -344,7 +344,7 @@
     <div class="button-group">
       <button id="analyze-btn" class="btn btn-primary">텍스트 분석하기</button>
       <button id="apply-tone-btn" class="btn btn-secondary hidden">톤 적용하기</button>
-      <button id="convert-all-btn" class="btn btn-outline">모든 텍스트 변환</button>
+      <button id="convert-all-btn" class="btn btn-outline">선택한 Frame의 텍스트 변환</button>
       <button id="cancel-btn" class="btn btn-outline">취소</button>
     </div>
     
@@ -473,7 +473,17 @@
     });
     
     convertAllBtn.addEventListener('click', () => {
-      parent.postMessage({ pluginMessage: { type: 'convert-all' } }, '*');
+      const selectedIds = getSelectedFrameIds();
+      if (selectedIds.length > 0) {
+        parent.postMessage({ 
+          pluginMessage: { 
+            type: 'convert-all', 
+            data: { selectedFrameIds: selectedIds } 
+          } 
+        }, '*');
+      } else {
+        alert('변환할 Frame을 선택해주세요.');
+      }
     });
     
     cancelBtn.addEventListener('click', () => {
