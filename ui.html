@@ -619,26 +619,46 @@
 
   <script>
     // UI 상태 관리
-    let analysisResults = null;
+    let suggestions = [];
+    let selectedNodeIds = [];
+    let frames = [];
+    let selectedFrameIds = [];
     
     // DOM 요소들
-    const analyzeBtn = document.getElementById('analyze-btn');
-    const applyToneBtn = document.getElementById('apply-tone-btn');
+    const getFramesBtn = document.getElementById('get-frames-btn');
+    const generateSuggestionsBtn = document.getElementById('generate-suggestions-btn');
+    const applySelectedBtn = document.getElementById('apply-selected-btn');
     const convertAllBtn = document.getElementById('convert-all-btn');
     const cancelBtn = document.getElementById('cancel-btn');
     const loading = document.getElementById('loading');
-    const analysisResultsDiv = document.getElementById('analysis-results');
-    const toneProfileDiv = document.getElementById('tone-profile');
-    const previewItemsDiv = document.getElementById('preview-items');
+    const frameSelection = document.getElementById('frame-selection');
+    const frameList = document.getElementById('frame-list');
+    const selectAllFramesCheckbox = document.getElementById('select-all-frames');
+    const selectNoneFramesCheckbox = document.getElementById('select-none-frames');
     
     // 이벤트 리스너
-    analyzeBtn.addEventListener('click', () => {
+    getFramesBtn.addEventListener('click', () => {
       showLoading();
-      parent.postMessage({ pluginMessage: { type: 'analyze-selected' } }, '*');
+      parent.postMessage({ pluginMessage: { type: 'get-frames' } }, '*');
     });
     
-    applyToneBtn.addEventListener('click', () => {
-      parent.postMessage({ pluginMessage: { type: 'apply-tone' } }, '*');
+    generateSuggestionsBtn.addEventListener('click', () => {
+      showLoading();
+      parent.postMessage({ pluginMessage: { type: 'generate-suggestions' } }, '*');
+    });
+    
+    applySelectedBtn.addEventListener('click', () => {
+      const selectedIds = getSelectedNodeIds();
+      if (selectedIds.length > 0) {
+        parent.postMessage({ 
+          pluginMessage: { 
+            type: 'apply-selected-suggestions', 
+            data: { selectedNodeIds: selectedIds } 
+          } 
+        }, '*');
+      } else {
+        alert('선택된 항목이 없습니다.');
+      }
     });
     
     convertAllBtn.addEventListener('click', () => {
@@ -659,16 +679,115 @@
       parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
     });
     
+    // Frame 체크박스 이벤트
+    selectAllFramesCheckbox.addEventListener('change', () => {
+      if (selectAllFramesCheckbox.checked) {
+        selectAllFrames();
+      }
+    });
+    
+    selectNoneFramesCheckbox.addEventListener('change', () => {
+      if (selectNoneFramesCheckbox.checked) {
+        selectNoFrames();
+      }
+    });
+    
     // 로딩 표시
     function showLoading() {
       loading.classList.add('show');
-      analysisResultsDiv.classList.add('hidden');
-      applyToneBtn.classList.add('hidden');
+      frameSelection.classList.add('hidden');
+      applySelectedBtn.classList.add('hidden');
     }
     
     // 로딩 숨기기
     function hideLoading() {
       loading.classList.remove('show');
+    }
+    
+    // Frame 목록 렌더링
+    function renderFrames(framesData) {
+      frames = framesData;
+      selectedFrameIds = framesData.map(f => f.id);
+      
+      frameList.innerHTML = '';
+      
+      if (framesData.length === 0) {
+        frameList.innerHTML = '<div class="no-frames-message">텍스트가 포함된 Frame이 없습니다.</div>';
+        return;
+      }
+      
+      framesData.forEach(frame => {
+        const frameItem = document.createElement('div');
+        frameItem.className = 'frame-item';
+        frameItem.dataset.frameId = frame.id;
+        
+        frameItem.innerHTML = `
+          <input type="checkbox" class="frame-checkbox" data-frame-id="${frame.id}" checked>
+          <div class="frame-info">
+            <div class="frame-name">${frame.name}</div>
+            <div class="frame-text-count">텍스트 ${frame.textCount}개</div>
+          </div>
+        `;
+        
+        frameList.appendChild(frameItem);
+      });
+      
+      // 체크박스 이벤트 추가
+      document.querySelectorAll('.frame-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateFrameSelection);
+      });
+      
+      updateFrameSelection();
+    }
+    
+    // Frame 선택 상태 업데이트
+    function updateFrameSelection() {
+      const selectedCheckboxes = document.querySelectorAll('.frame-checkbox:checked');
+      const totalCheckboxes = document.querySelectorAll('.frame-checkbox');
+      
+      selectedFrameIds = Array.from(selectedCheckboxes).map(checkbox => checkbox.dataset.frameId);
+      
+      // 전체 선택 체크박스 상태 업데이트
+      selectAllFramesCheckbox.checked = selectedCheckboxes.length === totalCheckboxes.length;
+      selectNoneFramesCheckbox.checked = selectedCheckboxes.length === 0;
+      
+      // Frame 아이템 스타일 업데이트
+      document.querySelectorAll('.frame-item').forEach(item => {
+        const checkbox = item.querySelector('.frame-checkbox');
+        if (checkbox.checked) {
+          item.classList.add('selected');
+        } else {
+          item.classList.remove('selected');
+        }
+      });
+    }
+    
+    // 모든 Frame 선택
+    function selectAllFrames() {
+      document.querySelectorAll('.frame-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+      });
+      updateFrameSelection();
+    }
+    
+    // 모든 Frame 선택 해제
+    function selectNoFrames() {
+      document.querySelectorAll('.frame-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+      updateFrameSelection();
+    }
+    
+    // 선택된 노드 ID들 가져오기
+    function getSelectedNodeIds() {
+      const selectedCheckboxes = document.querySelectorAll('.suggestion-checkbox:checked');
+      return Array.from(selectedCheckboxes).map(checkbox => checkbox.dataset.nodeId);
+    }
+    
+    // 선택된 Frame ID들 가져오기
+    function getSelectedFrameIds() {
+      const selectedCheckboxes = document.querySelectorAll('.frame-checkbox:checked');
+      return Array.from(selectedCheckboxes).map(checkbox => checkbox.dataset.frameId);
     }
     
     // 톤 배지 생성
@@ -839,8 +958,13 @@
     window.addEventListener('message', (event) => {
       const message = event.data.pluginMessage;
       
-      if (message.type === 'analysis-result') {
-        handleAnalysisResult(message.profiles);
+      if (message.type === 'frames-result') {
+        renderFrames(message.frames);
+        hideLoading();
+        frameSelection.classList.remove('hidden');
+      } else if (message.type === 'suggestions-result') {
+        // 변환 제안 처리는 추후 구현
+        hideLoading();
       }
     });
   </script>

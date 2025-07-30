@@ -9,7 +9,27 @@ interface UXPattern {
   pattern: string;
   replacement: string;
   description: string;
-  category: 'command' | 'ending' | 'formal' | 'negative' | 'complex';
+  category: 'command' | 'ending' | 'formal' | 'negative' | 'complex' | 'dolgo';
+}
+
+// 변환 제안 인터페이스
+interface ConversionSuggestion {
+  nodeId: string;
+  nodeName: string;
+  originalText: string;
+  convertedText: string;
+  patterns: UXPattern[];
+  selected: boolean;
+  editable: boolean;
+  parentFrame?: string;
+}
+
+// Frame 정보 인터페이스
+interface FrameInfo {
+  id: string;
+  name: string;
+  textCount: number;
+  selected: boolean;
 }
 
 // 한국어 UX Writing 친근한 톤 변환 패턴
