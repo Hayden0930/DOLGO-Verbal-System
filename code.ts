@@ -9,7 +9,27 @@ interface UXPattern {
   pattern: string;
   replacement: string;
   description: string;
-  category: 'command' | 'ending' | 'formal' | 'negative' | 'complex';
+  category: 'command' | 'ending' | 'formal' | 'negative' | 'complex' | 'dolgo';
+}
+
+// 변환 제안 인터페이스
+interface ConversionSuggestion {
+  nodeId: string;
+  nodeName: string;
+  originalText: string;
+  convertedText: string;
+  patterns: UXPattern[];
+  selected: boolean;
+  editable: boolean;
+  parentFrame?: string;
+}
+
+// Frame 정보 인터페이스
+interface FrameInfo {
+  id: string;
+  name: string;
+  textCount: number;
+  selected: boolean;
 }
 
 // 한국어 UX Writing 친근한 톤 변환 패턴
@@ -244,14 +264,6 @@ function analyzeKeywords(text: string): KeywordAnalysis {
   return { keywords, frequency };
 }
 
-// 적용 가능한 패턴 찾기
-function findApplicablePatterns(text: string): UXPattern[] {
-  return uxPatterns.filter(pattern => {
-    const regex = new RegExp(escapeRegExp(pattern.pattern), 'g');
-    return regex.test(text);
-  });
-}
-
 // 제안사항 생성
 function generateSuggestions(sentenceStyle: SentenceAnalysis, emotion: EmotionAnalysis, keywords: KeywordAnalysis, patterns: UXPattern[]): string[] {
   const suggestions: string[] = [];
@@ -328,11 +340,6 @@ function convertToFriendlyTone(text: string): string {
   return convertedText;
 }
 
-// 정규식 특수문자 이스케이프 함수
-function escapeRegExp(string: string): string {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 // 선택된 텍스트 노드들을 분석
 function analyzeSelectedTextNodes(): UXToneProfile[] {
   const selection = figma.currentPage.selection;
@@ -362,32 +369,246 @@ function analyzeSelectedTextNodes(): UXToneProfile[] {
   return profiles;
 }
 
-// 선택된 텍스트 노드들을 친근한 톤으로 변환
-function convertSelectedTextNodes() {
-  const selection = figma.currentPage.selection;
+// 재귀적으로 텍스트 노드들을 찾는 함수
+function findAllTextNodes(node: SceneNode): TextNode[] {
+  const textNodes: TextNode[] = [];
   
-  if (selection.length === 0) {
+  if (node.type === 'TEXT') {
+    textNodes.push(node as TextNode);
+  } else if ('children' in node) {
+    for (const child of node.children) {
+      textNodes.push(...findAllTextNodes(child));
+    }
+  }
+  
+  return textNodes;
+}
+
+// 선택된 노드들에서 모든 텍스트 노드 찾기
+function getTextNodesFromSelection(): TextNode[] {
+  const selection = figma.currentPage.selection;
+  const allTextNodes: TextNode[] = [];
+  
+  for (const node of selection) {
+    allTextNodes.push(...findAllTextNodes(node));
+  }
+  
+  return allTextNodes;
+}
+
+// 현재 페이지의 모든 Frame 정보 가져오기
+function getAllFrames(): FrameInfo[] {
+  const frames: FrameInfo[] = [];
+  
+  function traverseNodes(node: SceneNode) {
+    if (node.type === 'FRAME' || node.type === 'GROUP' || node.type === 'COMPONENT' || node.type === 'INSTANCE') {
+      const textNodes = findAllTextNodes(node);
+      if (textNodes.length > 0) {
+        frames.push({
+          id: node.id,
+          name: node.name,
+          textCount: textNodes.length,
+          selected: false
+        });
+      }
+    }
+    
+    if ('children' in node) {
+      for (const child of node.children) {
+        traverseNodes(child);
+      }
+    }
+  }
+  
+  // 현재 페이지의 모든 노드 탐색
+  for (const node of figma.currentPage.children) {
+    traverseNodes(node);
+  }
+  
+  return frames;
+}
+
+// 폰트 로드 함수
+async function loadFontsForTextNode(textNode: TextNode): Promise<void> {
+  try {
+    const fontName = textNode.fontName as FontName;
+    await figma.loadFontAsync(fontName);
+  } catch (error) {
+    console.warn('폰트 로드 실패:', error);
+    // 기본 폰트로 폴백
+    try {
+      await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+    } catch (fallbackError) {
+      console.error('기본 폰트 로드도 실패:', fallbackError);
+    }
+  }
+}
+
+// 적용 가능한 패턴 찾기
+function findApplicablePatterns(text: string): UXPattern[] {
+  return uxPatterns.filter(pattern => {
+    const regex = new RegExp(escapeRegExp(pattern.pattern), 'g');
+    return regex.test(text);
+  });
+}
+
+// 정규식 특수문자 이스케이프 함수
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// 선택된 텍스트 노드들을 분석하여 변환 제안 생성
+function generateConversionSuggestions(): ConversionSuggestion[] {
+  const textNodes = getTextNodesFromSelection();
+  
+  if (textNodes.length === 0) {
+    return [];
+  }
+  
+  const suggestions: ConversionSuggestion[] = [];
+  
+  for (const textNode of textNodes) {
+    if (textNode.hasMissingFont) {
+      continue;
+    }
+    
+    const originalText = textNode.characters;
+    const convertedText = convertToFriendlyTone(originalText);
+    
+    if (originalText !== convertedText) {
+      const patterns = findApplicablePatterns(originalText);
+      
+      // 부모 Frame 이름 찾기
+      let parentFrame = '';
+      let parent = textNode.parent;
+      while (parent) {
+        if (parent.type === 'FRAME' || parent.type === 'GROUP' || parent.type === 'COMPONENT' || parent.type === 'INSTANCE') {
+          parentFrame = parent.name;
+          break;
+        }
+        parent = parent.parent;
+      }
+      
+      suggestions.push({
+        nodeId: textNode.id,
+        nodeName: textNode.name,
+        originalText: originalText,
+        convertedText: convertedText,
+        patterns: patterns,
+        selected: true,
+        editable: true,
+        parentFrame: parentFrame
+      });
+    }
+  }
+  
+  return suggestions;
+}
+
+// 선택된 제안들을 실제로 적용
+async function applySelectedSuggestions(selectedNodeIds: string[]): Promise<void> {
+  const textNodes = getTextNodesFromSelection();
+  
+  for (const textNode of textNodes) {
+    if (selectedNodeIds.includes(textNode.id)) {
+      if (textNode.hasMissingFont) {
+        continue;
+      }
+      
+      // 폰트 로드
+      await loadFontsForTextNode(textNode);
+      
+      const originalText = textNode.characters;
+      const convertedText = convertToFriendlyTone(originalText);
+      
+      if (originalText !== convertedText) {
+        try {
+          textNode.characters = convertedText;
+        } catch (error) {
+          console.error('텍스트 변경 실패:', error);
+        }
+      }
+    }
+  }
+}
+
+// 선택된 텍스트 노드들을 친근한 톤으로 변환
+async function convertSelectedTextNodes() {
+  const textNodes = getTextNodesFromSelection();
+  
+  if (textNodes.length === 0) {
     figma.notify('텍스트 노드를 선택해주세요!');
     return;
   }
   
   let convertedCount = 0;
   
-  for (const node of selection) {
-    if (node.type === 'TEXT') {
-      const textNode = node as TextNode;
-      
+  for (const textNode of textNodes) {
+    if (textNode.hasMissingFont) {
+      figma.notify('폰트가 누락된 텍스트가 있습니다. 폰트를 로드해주세요.');
+      continue;
+    }
+    
+    // 폰트 로드
+    await loadFontsForTextNode(textNode);
+    
+    const originalText = textNode.characters;
+    const convertedText = convertToFriendlyTone(originalText);
+    
+    if (originalText !== convertedText) {
+      try {
+        textNode.characters = convertedText;
+        convertedCount++;
+      } catch (error) {
+        console.error('텍스트 변경 실패:', error);
+        figma.notify('텍스트 변경 중 오류가 발생했습니다.');
+      }
+    }
+  }
+  
+  if (convertedCount > 0) {
+    figma.notify(`${convertedCount}개의 텍스트가 친근한 톤으로 변경되었습니다!`);
+  } else {
+    figma.notify('변경할 텍스트가 없습니다.');
+  }
+}
+
+// 선택한 Frame들의 텍스트 노드를 친근한 톤으로 변환
+async function convertSelectedFramesTextNodes(selectedFrameIds: string[]) {
+  if (selectedFrameIds.length === 0) {
+    figma.notify('선택된 Frame이 없습니다.');
+    return;
+  }
+  
+  let convertedCount = 0;
+  
+  for (const frameId of selectedFrameIds) {
+    const frameNode = figma.currentPage.findOne(node => node.id === frameId);
+    
+    if (!frameNode) {
+      continue;
+    }
+    
+    const textNodes = findAllTextNodes(frameNode);
+    
+    for (const textNode of textNodes) {
       if (textNode.hasMissingFont) {
-        figma.notify('폰트가 누락된 텍스트가 있습니다. 폰트를 로드해주세요.');
         continue;
       }
+      
+      // 폰트 로드
+      await loadFontsForTextNode(textNode);
       
       const originalText = textNode.characters;
       const convertedText = convertToFriendlyTone(originalText);
       
       if (originalText !== convertedText) {
-        textNode.characters = convertedText;
-        convertedCount++;
+        try {
+          textNode.characters = convertedText;
+          convertedCount++;
+        } catch (error) {
+          console.error('텍스트 변경 실패:', error);
+        }
       }
     }
   }
@@ -400,7 +621,7 @@ function convertSelectedTextNodes() {
 }
 
 // 모든 텍스트 노드를 친근한 톤으로 변환
-function convertAllTextNodes() {
+async function convertAllTextNodes() {
   const textNodes = figma.currentPage.findAll(node => node.type === 'TEXT') as TextNode[];
   
   if (textNodes.length === 0) {
@@ -415,12 +636,19 @@ function convertAllTextNodes() {
       continue;
     }
     
+    // 폰트 로드
+    await loadFontsForTextNode(textNode);
+    
     const originalText = textNode.characters;
     const convertedText = convertToFriendlyTone(originalText);
     
     if (originalText !== convertedText) {
-      textNode.characters = convertedText;
-      convertedCount++;
+      try {
+        textNode.characters = convertedText;
+        convertedCount++;
+      } catch (error) {
+        console.error('텍스트 변경 실패:', error);
+      }
     }
   }
   
@@ -432,16 +660,25 @@ function convertAllTextNodes() {
 }
 
 // UI에서 메시지 수신
-figma.ui.onmessage = (msg: { type: string; data?: any }) => {
+figma.ui.onmessage = async (msg: { type: string; data?: any }) => {
   if (msg.type === 'analyze-selected') {
     const profiles = analyzeSelectedTextNodes();
     figma.ui.postMessage({ type: 'analysis-result', profiles });
+  } else if (msg.type === 'generate-suggestions') {
+    const suggestions = generateConversionSuggestions();
+    figma.ui.postMessage({ type: 'suggestions-result', suggestions });
+  } else if (msg.type === 'get-frames') {
+    const frames = getAllFrames();
+    figma.ui.postMessage({ type: 'frames-result', frames });
+  } else if (msg.type === 'apply-selected-suggestions') {
+    await applySelectedSuggestions(msg.data.selectedNodeIds);
+    figma.notify('선택된 텍스트가 변환되었습니다!');
   } else if (msg.type === 'convert-selected') {
-    convertSelectedTextNodes();
+    await convertSelectedTextNodes();
   } else if (msg.type === 'convert-all') {
-    convertAllTextNodes();
+    await convertSelectedFramesTextNodes(msg.data?.selectedFrameIds || []);
   } else if (msg.type === 'apply-tone') {
-    convertSelectedTextNodes();
+    await convertSelectedTextNodes();
   } else if (msg.type === 'cancel') {
     figma.closePlugin();
   }

@@ -332,20 +332,189 @@
       background: #f1f5f9;
       color: #475569;
     }
+    
+    /* 돌고만 가이드 스타일 */
+    .dolgo-guide {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .dolgo-guide-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #92400e;
+      margin: 0 0 6px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .dolgo-guide-content {
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+    }
+    
+    .dolgo-guide-list {
+      margin: 6px 0;
+      padding-left: 16px;
+    }
+    
+    .dolgo-guide-list li {
+      margin-bottom: 2px;
+    }
+    
+    /* Frame 선택 UI 스타일 */
+    .frame-selection {
+      margin-bottom: 16px;
+    }
+    
+    .frame-list {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #f8fafc;
+    }
+    
+    .frame-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .frame-item:last-child {
+      border-bottom: none;
+    }
+    
+    .frame-item:hover {
+      background: #f1f5f9;
+    }
+    
+    .frame-item.selected {
+      background: #dbeafe;
+      border-left: 3px solid #3b82f6;
+    }
+    
+    .frame-checkbox {
+      width: 16px;
+      height: 16px;
+      accent-color: #3b82f6;
+      margin-right: 8px;
+    }
+    
+    .frame-info {
+      flex: 1;
+    }
+    
+    .frame-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #0f172a;
+      margin-bottom: 2px;
+    }
+    
+    .frame-text-count {
+      font-size: 11px;
+      color: #64748b;
+    }
+    
+    .frame-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      accent-color: #10b981;
+    }
+    
+    .no-frames-message {
+      text-align: center;
+      padding: 20px;
+      color: #64748b;
+      font-size: 12px;
+    }
+    
+    .btn-success {
+      background: #10b981;
+      color: #ffffff;
+      border-color: #10b981;
+    }
+    
+    .btn-success:hover {
+      background: #059669;
+      border-color: #059669;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <h1>🎯 DOLGO Verbal System</h1>
-      <p>한국어 UX Writing 친근한 톤 변환</p>
+    </div>
+    
+    <!-- 돌고만의 기본 용어 시스템 가이드 -->
+    <div class="dolgo-guide">
+      <div class="dolgo-guide-title">
+        🏢 돌고만의 기본 용어 시스템
+      </div>
+      <div class="dolgo-guide-content">
+        <ul class="dolgo-guide-list">
+          <li>기부 관련 용어 통일 (나눔/후원/함께하기 → 기부)</li>
+          <li>모금과 사연 개념 구분 (정기모금/일시모금 → 정기사연/일시사연)</li>
+          <li>기부재단 등 전문 용어 정확한 사용</li>
+          <li>배분 관련 용어 통일 (나눔 → 배분)</li>
+          <li>기부재단 생성 용어 통일 (설립 → 개설)</li>
+          <li>메시지와 댓글 개념 구분</li>
+        </ul>
+      </div>
     </div>
     
     <div class="button-group">
-      <button id="analyze-btn" class="btn btn-primary">텍스트 분석하기</button>
-      <button id="apply-tone-btn" class="btn btn-secondary hidden">톤 적용하기</button>
-      <button id="convert-all-btn" class="btn btn-outline">모든 텍스트 변환</button>
-      <button id="cancel-btn" class="btn btn-outline">취소</button>
+      <button id="get-frames-btn" class="btn btn-outline">Frame 목록 가져오기</button>
+      <button id="generate-suggestions-btn" class="btn btn-primary">변환 패턴 미리보기</button>
+      <button id="apply-selected-btn" class="btn btn-success hidden">선택된 텍스트에 친근한 톤 적용하기</button>
+      <button id="convert-all-btn" class="btn btn-outline">선택한 Frame의 텍스트 변환</button>
+      <button id="cancel-btn" class="btn btn-outline">닫기</button>
+    </div>
+    
+    <!-- Frame 선택 섹션 -->
+    <div id="frame-selection" class="frame-selection hidden">
+      <div class="card-header">
+        <h3 class="card-title">📋 Frame 선택</h3>
+        <p class="card-description">텍스트를 변환할 Frame을 선택하세요</p>
+      </div>
+      
+      <div class="frame-controls">
+        <div class="checkbox-group">
+          <input type="checkbox" id="select-all-frames">
+          <label for="select-all-frames">모든 Frame 선택</label>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="select-none-frames">
+          <label for="select-none-frames">선택 해제</label>
+        </div>
+      </div>
+      
+      <div id="frame-list" class="frame-list">
+        <!-- Frame 목록이 여기에 동적으로 추가됩니다 -->
+      </div>
     </div>
     
     <div id="loading" class="loading">
@@ -450,46 +619,175 @@
 
   <script>
     // UI 상태 관리
-    let analysisResults = null;
+    let suggestions = [];
+    let selectedNodeIds = [];
+    let frames = [];
+    let selectedFrameIds = [];
     
     // DOM 요소들
-    const analyzeBtn = document.getElementById('analyze-btn');
-    const applyToneBtn = document.getElementById('apply-tone-btn');
+    const getFramesBtn = document.getElementById('get-frames-btn');
+    const generateSuggestionsBtn = document.getElementById('generate-suggestions-btn');
+    const applySelectedBtn = document.getElementById('apply-selected-btn');
     const convertAllBtn = document.getElementById('convert-all-btn');
     const cancelBtn = document.getElementById('cancel-btn');
     const loading = document.getElementById('loading');
-    const analysisResultsDiv = document.getElementById('analysis-results');
-    const toneProfileDiv = document.getElementById('tone-profile');
-    const previewItemsDiv = document.getElementById('preview-items');
+    const frameSelection = document.getElementById('frame-selection');
+    const frameList = document.getElementById('frame-list');
+    const selectAllFramesCheckbox = document.getElementById('select-all-frames');
+    const selectNoneFramesCheckbox = document.getElementById('select-none-frames');
     
     // 이벤트 리스너
-    analyzeBtn.addEventListener('click', () => {
+    getFramesBtn.addEventListener('click', () => {
       showLoading();
-      parent.postMessage({ pluginMessage: { type: 'analyze-selected' } }, '*');
+      parent.postMessage({ pluginMessage: { type: 'get-frames' } }, '*');
     });
     
-    applyToneBtn.addEventListener('click', () => {
-      parent.postMessage({ pluginMessage: { type: 'apply-tone' } }, '*');
+    generateSuggestionsBtn.addEventListener('click', () => {
+      showLoading();
+      parent.postMessage({ pluginMessage: { type: 'generate-suggestions' } }, '*');
+    });
+    
+    applySelectedBtn.addEventListener('click', () => {
+      const selectedIds = getSelectedNodeIds();
+      if (selectedIds.length > 0) {
+        parent.postMessage({ 
+          pluginMessage: { 
+            type: 'apply-selected-suggestions', 
+            data: { selectedNodeIds: selectedIds } 
+          } 
+        }, '*');
+      } else {
+        alert('선택된 항목이 없습니다.');
+      }
     });
     
     convertAllBtn.addEventListener('click', () => {
-      parent.postMessage({ pluginMessage: { type: 'convert-all' } }, '*');
+      const selectedIds = getSelectedFrameIds();
+      if (selectedIds.length > 0) {
+        parent.postMessage({ 
+          pluginMessage: { 
+            type: 'convert-all', 
+            data: { selectedFrameIds: selectedIds } 
+          } 
+        }, '*');
+      } else {
+        alert('변환할 Frame을 선택해주세요.');
+      }
     });
     
     cancelBtn.addEventListener('click', () => {
       parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
     });
     
+    // Frame 체크박스 이벤트
+    selectAllFramesCheckbox.addEventListener('change', () => {
+      if (selectAllFramesCheckbox.checked) {
+        selectAllFrames();
+      }
+    });
+    
+    selectNoneFramesCheckbox.addEventListener('change', () => {
+      if (selectNoneFramesCheckbox.checked) {
+        selectNoFrames();
+      }
+    });
+    
     // 로딩 표시
     function showLoading() {
       loading.classList.add('show');
-      analysisResultsDiv.classList.add('hidden');
-      applyToneBtn.classList.add('hidden');
+      frameSelection.classList.add('hidden');
+      applySelectedBtn.classList.add('hidden');
     }
     
     // 로딩 숨기기
     function hideLoading() {
       loading.classList.remove('show');
+    }
+    
+    // Frame 목록 렌더링
+    function renderFrames(framesData) {
+      frames = framesData;
+      selectedFrameIds = framesData.map(f => f.id);
+      
+      frameList.innerHTML = '';
+      
+      if (framesData.length === 0) {
+        frameList.innerHTML = '<div class="no-frames-message">텍스트가 포함된 Frame이 없습니다.</div>';
+        return;
+      }
+      
+      framesData.forEach(frame => {
+        const frameItem = document.createElement('div');
+        frameItem.className = 'frame-item';
+        frameItem.dataset.frameId = frame.id;
+        
+        frameItem.innerHTML = `
+          <input type="checkbox" class="frame-checkbox" data-frame-id="${frame.id}" checked>
+          <div class="frame-info">
+            <div class="frame-name">${frame.name}</div>
+            <div class="frame-text-count">텍스트 ${frame.textCount}개</div>
+          </div>
+        `;
+        
+        frameList.appendChild(frameItem);
+      });
+      
+      // 체크박스 이벤트 추가
+      document.querySelectorAll('.frame-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateFrameSelection);
+      });
+      
+      updateFrameSelection();
+    }
+    
+    // Frame 선택 상태 업데이트
+    function updateFrameSelection() {
+      const selectedCheckboxes = document.querySelectorAll('.frame-checkbox:checked');
+      const totalCheckboxes = document.querySelectorAll('.frame-checkbox');
+      
+      selectedFrameIds = Array.from(selectedCheckboxes).map(checkbox => checkbox.dataset.frameId);
+      
+      // 전체 선택 체크박스 상태 업데이트
+      selectAllFramesCheckbox.checked = selectedCheckboxes.length === totalCheckboxes.length;
+      selectNoneFramesCheckbox.checked = selectedCheckboxes.length === 0;
+      
+      // Frame 아이템 스타일 업데이트
+      document.querySelectorAll('.frame-item').forEach(item => {
+        const checkbox = item.querySelector('.frame-checkbox');
+        if (checkbox.checked) {
+          item.classList.add('selected');
+        } else {
+          item.classList.remove('selected');
+        }
+      });
+    }
+    
+    // 모든 Frame 선택
+    function selectAllFrames() {
+      document.querySelectorAll('.frame-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+      });
+      updateFrameSelection();
+    }
+    
+    // 모든 Frame 선택 해제
+    function selectNoFrames() {
+      document.querySelectorAll('.frame-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+      updateFrameSelection();
+    }
+    
+    // 선택된 노드 ID들 가져오기
+    function getSelectedNodeIds() {
+      const selectedCheckboxes = document.querySelectorAll('.suggestion-checkbox:checked');
+      return Array.from(selectedCheckboxes).map(checkbox => checkbox.dataset.nodeId);
+    }
+    
+    // 선택된 Frame ID들 가져오기
+    function getSelectedFrameIds() {
+      const selectedCheckboxes = document.querySelectorAll('.frame-checkbox:checked');
+      return Array.from(selectedCheckboxes).map(checkbox => checkbox.dataset.frameId);
     }
     
     // 톤 배지 생성
@@ -660,8 +958,13 @@
     window.addEventListener('message', (event) => {
       const message = event.data.pluginMessage;
       
-      if (message.type === 'analysis-result') {
-        handleAnalysisResult(message.profiles);
+      if (message.type === 'frames-result') {
+        renderFrames(message.frames);
+        hideLoading();
+        frameSelection.classList.remove('hidden');
+      } else if (message.type === 'suggestions-result') {
+        // 변환 제안 처리는 추후 구현
+        hideLoading();
       }
     });
   </script>
