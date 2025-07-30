@@ -264,14 +264,6 @@ function analyzeKeywords(text: string): KeywordAnalysis {
   return { keywords, frequency };
 }
 
-// 적용 가능한 패턴 찾기
-function findApplicablePatterns(text: string): UXPattern[] {
-  return uxPatterns.filter(pattern => {
-    const regex = new RegExp(escapeRegExp(pattern.pattern), 'g');
-    return regex.test(text);
-  });
-}
-
 // 제안사항 생성
 function generateSuggestions(sentenceStyle: SentenceAnalysis, emotion: EmotionAnalysis, keywords: KeywordAnalysis, patterns: UXPattern[]): string[] {
   const suggestions: string[] = [];
@@ -346,11 +338,6 @@ function convertToFriendlyTone(text: string): string {
     .replace(/문제가 있습니다/g, '개선이 필요해요');
   
   return convertedText;
-}
-
-// 정규식 특수문자 이스케이프 함수
-function escapeRegExp(string: string): string {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // 선택된 텍스트 노드들을 분석
