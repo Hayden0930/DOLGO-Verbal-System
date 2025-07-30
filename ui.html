@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2 {
+      color: #333;
+      margin: 0 0 16px 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .description {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    button {
+      background: #18a0fb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    button:hover {
+      background: #0d8ce0;
+    }
+    
+    button.secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+    
+    button.secondary:hover {
+      background: #e0e0e0;
+    }
+    
+    .examples {
+      margin-top: 20px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border-left: 4px solid #18a0fb;
+    }
+    
+    .examples h3 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      color: #333;
+    }
+    
+    .example-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    
+    .example-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .before {
+      color: #666;
+    }
+    
+    .arrow {
+      color: #999;
+      margin: 0 8px;
+    }
+    
+    .after {
+      color: #18a0fb;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎯 DOLGO Verbal System</h2>
+    <div class="description">
+      선택한 텍스트를 한국어 UX Writing 친근한 톤으로 자동 변환해드립니다.
+    </div>
+    
+    <div class="button-group">
+      <button id="convert-selected">선택한 텍스트 변환</button>
+      <button id="convert-all">모든 텍스트 변환</button>
+      <button id="cancel" class="secondary">취소</button>
+    </div>
+    
+    <div class="examples">
+      <h3>변환 예시</h3>
+      <div class="example-item">
+        <span class="before">확인해보세요</span>
+        <span class="arrow">→</span>
+        <span class="after">확인하기</span>
+      </div>
+      <div class="example-item">
+        <span class="before">클릭하세요</span>
+        <span class="arrow">→</span>
+        <span class="after">클릭하기</span>
+      </div>
+      <div class="example-item">
+        <span class="before">입력하세요</span>
+        <span class="arrow">→</span>
+        <span class="after">입력하기</span>
+      </div>
+      <div class="example-item">
+        <span class="before">문의하세요</span>
+        <span class="arrow">→</span>
+        <span class="after">문의하기</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('convert-selected').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'convert-selected' } }, '*');
+    };
+
+    document.getElementById('convert-all').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'convert-all' } }, '*');
+    };
+
+    document.getElementById('cancel').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    };
+  </script>
+</body>
+</html>
